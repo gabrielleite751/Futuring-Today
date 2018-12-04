@@ -1,2 +1,4 @@
 # Futuring-Today # 
- Projeto Futuring
+Projeto Futuring Today - Absurd
+
+Todos os código serão colocados aqui para evitar perdas!
