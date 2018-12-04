@@ -1,0 +1,138 @@
+#include <SPI.h>
+#include <MFRC522.h>
+#include <LiquidCrystal.h>
+
+#define buzzer    30
+#define RST_PIN       5     
+#define SS_PIN        53         
+#define redPin   24
+#define greenPin   26
+#define bluePin   28
+
+MFRC522 rfid(SS_PIN, RST_PIN);
+MFRC522::MIFARE_Key key;
+
+LiquidCrystal lcd(2,3,4,10,11,12,13);
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Bem Vindo ao Absurd!");
+  Serial.println("Escolha seu Arquetipo:");
+  SPI.begin();
+  rfid.PCD_Init();
+  lcd.begin(16,2);      
+  lcd.print("Bem Vindo");
+  lcd.setCursor(0,1);
+  lcd.print("Ao Absurd!");
+  delay(4000);
+  lcd.clear();
+  lcd.print("Escolha seu");
+  lcd.setCursor(0,1);
+  lcd.print("Arquetipo:");
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(buzzer, INPUT);
+  
+ }
+
+
+void loop() {
+  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
+    return;  
+
+  MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
+   
+  if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&
+    piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
+    piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
+    Serial.println(F("Your tag is not of type MIFARE Classic."));
+    return; 
+   }
+   
+  String strID = "";
+  for (byte i = 0; i < 4; i++) {
+    strID +=
+    (rfid.uid.uidByte[i] < 0x10 ? "0" : "") +
+    String(rfid.uid.uidByte[i], HEX) +
+    (i!=3 ? ":" : "");
+  }  
+  strID.toUpperCase();
+  
+  
+  if (strID.indexOf("92:BB:2E:00") >= 0) {
+    lcd.clear();
+    tone(buzzer, 4000, 0);
+    digitalWrite(bluePin, HIGH);
+    lcd.print("Arquetipo");
+    lcd.setCursor(0,1);
+    lcd.print("Selecionado!");
+    delay(3000);
+    lcd.clear();
+    lcd.print("O Monstro!");
+    Serial.println("Card ID: " + strID);
+    Serial.println("Arquetipo! Selecionado");
+    Serial.println("O Monstro");
+    Serial.println("Next Card!");}
+  else {
+    digitalWrite(bluePin, LOW);
+    noTone(buzzer);}
+    
+  if (strID.indexOf("D5:32:92:03") >= 0) {
+    lcd.clear();
+    tone(buzzer, 3000, 0);
+    digitalWrite(redPin, HIGH);
+    lcd.print("Status-Quo");
+    lcd.setCursor(0,1);
+    lcd.print("Selecionado!");
+    delay(3000);
+    lcd.clear();
+    lcd.print("Perdido");
+    lcd.setCursor(0,1);
+    lcd.print("Na Multidao");
+    Serial.println("Card ID: " + strID);
+    Serial.println("Status-Quo! Selecionado");
+    Serial.println("Perdido na Multidão");
+    Serial.println("Next Card!");
+  } 
+  else {
+    noTone(buzzer);
+    digitalWrite(redPin, LOW); 
+  }  
+  
+  if (strID.indexOf("93:DB:B9:79") >= 0) {
+    lcd.clear();
+    tone(buzzer, 5000, 0);
+    digitalWrite(redPin, HIGH);
+    digitalWrite(bluePin, HIGH);
+    lcd.print("Animal");
+    lcd.setCursor(0,1);
+    lcd.print("Selecionado!");
+    delay(3000);
+    lcd.clear();
+    lcd.print("Black");
+    lcd.setCursor(0,1);
+    lcd.print("Elephant");
+    Serial.println("Card ID: " + strID);
+    Serial.println("Animal! Selecionado");
+    Serial.println("Black Elephant");
+    Serial.println("Next Card!");
+    Serial.println(".");
+    Serial.println(".");
+    Serial.println(".");
+   } 
+
+  else{ 
+    noTone(buzzer);
+   }
+  rfid.PICC_HaltA();
+  rfid.PCD_StopCrypto1();
+}
+   
+                 
+             
+void setColor(int redValue, int greenValue, int blueValue){
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin, greenValue);
+  analogWrite(bluePin, blueValue);
+} 
